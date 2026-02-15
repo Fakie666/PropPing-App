@@ -5,5 +5,10 @@ npm-debug.log*
 .gitignore
 .env
 .env.local
+.env.deploy
+dist-desktop
+*.tar.gz
+*.zip
+*.exe
 uploads/*
 !uploads/.gitkeep
