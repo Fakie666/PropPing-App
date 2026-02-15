@@ -24,6 +24,7 @@ services:
     environment:
       NODE_ENV: production
       UPLOAD_DIR: /app/uploads
+      RUN_WORKER: "false"
     depends_on:
       postgres:
         condition: service_healthy

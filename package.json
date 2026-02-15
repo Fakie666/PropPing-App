@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "npm run start:prod",
+    "start:web": "next start",
     "prisma": "prisma",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -17,8 +18,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "worker": "tsx src/worker/index.ts",
-    "start:prod": "npm run db:migrate:deploy && next start",
-    "worker:prod": "npm run db:migrate:deploy && npm run worker",
+    "start:prod": "node scripts/production-entrypoint.cjs",
+    "worker:prod": "npm run worker",
     "smoke:stage2": "tsx scripts/stage2-smoke.ts",
     "smoke:stage3": "tsx scripts/stage3-smoke.ts",
     "smoke:stage4": "tsx scripts/stage4-smoke.ts",
@@ -27,7 +28,8 @@
     "verify:win": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/windows/verify.ps1",
     "desktop:dev": "concurrently -k \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
     "desktop:run": "electron .",
-    "desktop:exe": "electron-builder --win nsis --publish never"
+    "desktop:exe": "electron-builder --win nsis --publish never",
+    "postinstall": "prisma generate"
   },
   "build": {
     "appId": "com.propping.desktop",
@@ -66,6 +68,8 @@
     "openai": "^4.57.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "prisma": "^5.20.0",
+    "tsx": "^4.19.1",
     "twilio": "^5.3.6",
     "zod": "^3.23.8"
   },
@@ -79,8 +83,6 @@
     "electron-builder": "^26.0.12",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
-    "prisma": "^5.20.0",
-    "tsx": "^4.19.1",
     "typescript": "^5.5.4",
     "vitest": "^2.1.0",
     "wait-on": "^9.0.3"

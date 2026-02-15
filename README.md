@@ -325,9 +325,13 @@ npm run verify:win
 ### Process model
 
 - Web app: `npm run start:prod`
-- Worker: `npm run worker:prod`
+- Optional separate worker: `npm run worker:prod`
 
-Both commands run `prisma migrate deploy` before starting, so schema stays aligned.
+`npm run start:prod` now:
+
+- retries `prisma migrate deploy` on boot
+- starts web server
+- auto-starts worker on Railway by default (can be controlled with `RUN_WORKER`)
 
 ### Docker deployment (recommended)
 
@@ -362,6 +366,36 @@ PowerShell:
 ```powershell
 Invoke-WebRequest -Uri "http://localhost:3000/api/health"
 ```
+
+### Railway quick deploy (no VM, simplest)
+
+1. Deploy from GitHub repo in Railway.
+2. Add PostgreSQL service in the same Railway project.
+3. In Web service variables, set:
+
+```env
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+DIRECT_URL=${{Postgres.DATABASE_URL}}
+NODE_ENV=production
+SESSION_SECRET=<long-random-secret>
+MOCK_TWILIO=true
+RUN_WORKER=true
+```
+
+4. Deploy Web service (`npm run start:prod` is default-safe).
+5. Open service shell once and seed demo data:
+
+```bash
+npm run db:seed
+```
+
+6. Verify:
+- `https://<your-railway-domain>/api/health`
+- Login: `admin@demo.propping.local` / `DemoPass123!`
+
+Notes:
+- One Web service is enough on Railway because worker auto-runs when `RUN_WORKER=true`.
+- If you want a dedicated Worker service, set Web `RUN_WORKER=false` and run `npm run worker:prod` on the Worker service.
 
 ### Non-Docker deployment
 
