@@ -1,0 +1,196 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PropPing Desktop Setup</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg-1: #edf4ff;
+        --bg-2: #dff0f5;
+        --panel: rgba(255, 255, 255, 0.9);
+        --line: rgba(152, 174, 201, 0.45);
+        --text: #233248;
+        --muted: #5b6f87;
+        --accent: #1d67b1;
+        --accent-strong: #14508e;
+        --ok: #2e8f4f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", "Inter", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 0% 0%, #d3e6ff 0%, transparent 45%),
+          radial-gradient(circle at 100% 0%, #d2f0df 0%, transparent 40%),
+          linear-gradient(160deg, var(--bg-1), var(--bg-2));
+        display: grid;
+        place-items: center;
+        padding: 22px;
+      }
+
+      .panel {
+        width: min(760px, 100%);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--panel);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 26px 60px rgba(33, 59, 96, 0.16);
+        padding: 26px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.7rem, 2vw, 2.1rem);
+      }
+
+      p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+        font-weight: 600;
+        margin-top: 8px;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid #bccce2;
+        border-radius: 12px;
+        padding: 11px 12px;
+        font-size: 1rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      button {
+        border: 1px solid var(--accent);
+        border-radius: 12px;
+        padding: 10px 14px;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--accent-strong);
+      }
+
+      button.secondary {
+        background: #fff;
+        color: var(--accent);
+      }
+
+      .status {
+        margin-top: 14px;
+        min-height: 22px;
+        font-weight: 600;
+      }
+
+      .status.ok {
+        color: var(--ok);
+      }
+
+      .status.error {
+        color: #a93a3a;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="panel">
+      <h1>PropPing Desktop Setup</h1>
+      <p id="summary">PropPing could not connect. Enter your hosted app URL and connect.</p>
+
+      <label>
+        PropPing Server URL
+        <input id="serverUrl" type="url" placeholder="https://app.yourdomain.com" />
+      </label>
+
+      <div class="actions">
+        <button id="saveBtn">Save & Connect</button>
+        <button id="retryBtn" class="secondary">Retry Current URL</button>
+        <button id="folderBtn" class="secondary">Open Config Folder</button>
+      </div>
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <script>
+      const statusEl = document.getElementById("status");
+      const summaryEl = document.getElementById("summary");
+      const serverInput = document.getElementById("serverUrl");
+      const saveBtn = document.getElementById("saveBtn");
+      const retryBtn = document.getElementById("retryBtn");
+      const folderBtn = document.getElementById("folderBtn");
+
+      const reasonMessages = {
+        remote_unreachable: "Could not reach your PropPing server URL.",
+        page_load_failed: "Page load failed. Check your connection and retry.",
+        unexpected_error: "Unexpected launch error. Retry or update the URL."
+      };
+
+      function setStatus(text, ok = false) {
+        statusEl.textContent = text;
+        statusEl.className = ok ? "status ok" : "status error";
+      }
+
+      async function loadConfig() {
+        const config = await window.desktopConfig.get();
+        serverInput.value = config.serverUrl || "";
+      }
+
+      retryBtn.addEventListener("click", async () => {
+        setStatus("Retrying connection...", true);
+        await window.desktopConfig.retry();
+      });
+
+      saveBtn.addEventListener("click", async () => {
+        const response = await window.desktopConfig.set(serverInput.value);
+        if (response.ok) {
+          setStatus("Saved. Reconnecting...", true);
+          return;
+        }
+
+        if (response.error === "not_propping_server") {
+          setStatus("This URL is not a PropPing server. Use your app domain (for example https://app.yourdomain.com).");
+          return;
+        }
+
+        setStatus("Please enter a valid http(s) URL.");
+      });
+
+      folderBtn.addEventListener("click", async () => {
+        await window.desktopConfig.openFolder();
+        setStatus("Config folder opened.", true);
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      const reason = params.get("reason");
+      if (reason) {
+        const message = reasonMessages[reason] || "Setup is required before launch.";
+        summaryEl.textContent = message;
+        setStatus(message);
+      }
+
+      loadConfig();
+    </script>
+  </body>
+</html>

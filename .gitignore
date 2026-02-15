@@ -1,0 +1,34 @@
+# dependencies
+node_modules
+
+# next
+.next
+out
+
+# build artifacts
+dist-desktop
+*.tar.gz
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# env
+.env
+.env.deploy
+.env.local
+.env.*.local
+
+# prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# runtime uploads (keep folder)
+uploads/*
+!uploads/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
